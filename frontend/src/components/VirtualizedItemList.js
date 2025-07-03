@@ -14,11 +14,21 @@ const VirtualizedItemList = ({ items, height = 600 }) => {
       
       return (
         <div style={style}>
-          <div className="item">
-            <Link to={'/items/' + item.id} className="item-link">
-              <span className="item-name">{item.name}</span>
-              <span className="item-category">({item.category})</span>
-              <span className="item-price">${item.price.toLocaleString()}</span>
+          <div className="item" role="listitem">
+            <Link 
+              to={'/items/' + item.id} 
+              className="item-link"
+              aria-label={`View details for ${item.name}, ${item.category}, $${item.price.toLocaleString()}`}
+            >
+              <div className="item-info">
+                <span className="item-name">{item.name}</span>
+                <span className="item-category" aria-label={`Category: ${item.category}`}>
+                  {item.category}
+                </span>
+              </div>
+              <span className="item-price" aria-label={`Price: $${item.price.toLocaleString()}`}>
+                ${item.price.toLocaleString()}
+              </span>
             </Link>
           </div>
         </div>
@@ -49,6 +59,8 @@ const VirtualizedItemList = ({ items, height = 600 }) => {
         width="100%"
         className="virtualized-list"
         overscanCount={5} // Render 5 extra items for smoother scrolling
+        role="list"
+        aria-label="Items list"
       >
         {ItemRenderer}
       </List>
