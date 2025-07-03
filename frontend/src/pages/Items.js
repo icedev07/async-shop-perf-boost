@@ -1,32 +1,111 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useData } from '../state/DataContext';
 import { Link } from 'react-router-dom';
 
 function Items() {
-  const { items, fetchItems } = useData();
+  const { items, pagination, loading, fetchItems } = useData();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
     let active = true;
 
-    // Intentional bug: setState called after component unmount if request is slow
-    fetchItems().catch(console.error);
+    // Fetch items with current search and pagination
+    fetchItems(active, {
+      page: currentPage,
+      pageSize,
+      search: searchTerm
+    });
 
-    // Clean‑up to avoid memory leak (candidate should implement)
     return () => {
       active = false;
     };
-  }, [fetchItems]);
+  }, [fetchItems, currentPage, pageSize, searchTerm]);
 
-  if (!items.length) return <p>Loading...</p>;
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  if (loading && !items.length) {
+    return (
+      <div className="loading">
+        <p>Loading items...</p>
+      </div>
+    );
+  }
 
   return (
-    <ul>
-      {items.map(item => (
-        <li key={item.id}>
-          <Link to={'/items/' + item.id}>{item.name}</Link>
-        </li>
-      ))}
-    </ul>
+    <div className="items-container">
+      {/* Search Form */}
+      <form onSubmit={handleSearch} className="search-form">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search items by name or category..."
+          className="search-input"
+        />
+        <button type="submit" className="search-button">
+          Search
+        </button>
+      </form>
+
+      {/* Items List */}
+      {items.length === 0 ? (
+        <p className="no-items">No items found.</p>
+      ) : (
+        <ul className="items-list">
+          {items.map(item => (
+            <li key={item.id} className="item">
+              <Link to={'/items/' + item.id} className="item-link">
+                <span className="item-name">{item.name}</span>
+                <span className="item-category">({item.category})</span>
+                <span className="item-price">${item.price}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Pagination Controls */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="pagination">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={!pagination.hasPrevPage}
+            className="pagination-button"
+          >
+            Previous
+          </button>
+          
+          <span className="pagination-info">
+            Page {pagination.currentPage} of {pagination.totalPages}
+            {' '}({pagination.totalItems} total items)
+          </span>
+          
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={!pagination.hasNextPage}
+            className="pagination-button"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Loading indicator for subsequent requests */}
+      {loading && items.length > 0 && (
+        <div className="loading-indicator">
+          <p>Loading...</p>
+        </div>
+      )}
+    </div>
   );
 }
 

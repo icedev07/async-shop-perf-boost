@@ -21,6 +21,11 @@ app.use('/api/stats', statsRouter);
 // Not Found
 app.use('*', notFound);
 
+// Global error handler
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
+});
+
 getCookie();
 
 app.listen(port, () => console.log('Backend running on http://localhost:' + port));
