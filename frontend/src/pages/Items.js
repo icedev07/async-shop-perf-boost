@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useData } from '../state/DataContext';
-import { Link } from 'react-router-dom';
+import VirtualizedItemList from '../components/VirtualizedItemList';
 
 function Items() {
   const { items, pagination, loading, fetchItems } = useData();
@@ -60,17 +60,15 @@ function Items() {
       {items.length === 0 ? (
         <p className="no-items">No items found.</p>
       ) : (
-        <ul className="items-list">
-          {items.map(item => (
-            <li key={item.id} className="item">
-              <Link to={'/items/' + item.id} className="item-link">
-                <span className="item-name">{item.name}</span>
-                <span className="item-category">({item.category})</span>
-                <span className="item-price">${item.price}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div>
+          <div className="performance-info">
+            <span>Rendering {items.length} items with virtualization</span>
+            {pagination && (
+              <span> • Page {pagination.currentPage} of {pagination.totalPages}</span>
+            )}
+          </div>
+          <VirtualizedItemList items={items} height={400} />
+        </div>
       )}
 
       {/* Pagination Controls */}
